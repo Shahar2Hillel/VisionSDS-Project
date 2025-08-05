@@ -4,11 +4,11 @@ import optuna
 from ultralytics import YOLO
 
 # From the other files, we need the dataset root and YAML path
-dataset_root = '../output_all_tools_sample'
+dataset_root = '../output_all_tools'
 yaml_output_path = os.path.join(dataset_root, "pose.yaml")
 
 DATA_PATH = yaml_output_path
-IS_OPTUNA = False
+IS_OPTUNA = False  # Set to True if you want to use Optuna for hyperparameter tuning
 
 model = YOLO("yolov8n-pose.pt")
 
@@ -42,7 +42,7 @@ if not IS_OPTUNA:
     results = model.train(
         data=DATA_PATH,
         epochs=100,
-        imgsz=640,
+        imgsz=1024,
         batch=16,
         workers=8,
         device=0,

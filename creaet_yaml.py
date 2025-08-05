@@ -6,7 +6,7 @@ import shutil
 from PIL import Image
 
 # === CONFIG ===
-dataset_root = '../output_all_tools_sample'
+dataset_root = '../output_all_tools'
 json_path = os.path.join(dataset_root, 'annotations.json')
 yaml_output_path = os.path.join(dataset_root, "pose.yaml")
 images_src_dir = os.path.join(dataset_root, 'images_with_background')  # source folder of all images
