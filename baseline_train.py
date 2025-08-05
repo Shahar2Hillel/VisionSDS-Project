@@ -1,8 +1,13 @@
+import os
 import json
 import optuna
 from ultralytics import YOLO
 
-DATA_PATH = "pose.yaml"
+# From the other files, we need the dataset root and YAML path
+dataset_root = '../output_all_tools_sample'
+yaml_output_path = os.path.join(dataset_root, "pose.yaml")
+
+DATA_PATH = yaml_output_path
 IS_OPTUNA = False
 
 model = YOLO("yolov8n-pose.pt")
@@ -35,7 +40,7 @@ def objective(trial):
 
 if not IS_OPTUNA:
     results = model.train(
-        data="pose.yaml",
+        data=DATA_PATH,
         epochs=100,
         imgsz=640,
         batch=16,
