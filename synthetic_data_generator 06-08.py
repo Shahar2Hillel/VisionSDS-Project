@@ -1,4 +1,5 @@
-# My current Code
+
+# Fixed BlenderProc script with proper multi-tool integration
 import blenderproc as bproc
 from blenderproc.python.camera import CameraUtility
 import bpy
@@ -526,7 +527,7 @@ def process_multi_objects(obj_paths, camera_params, base_output_dir, num_images=
             lookat_point = scene_center + np.random.uniform([-0.5, -0.5, -0.5], [0.5, 0.5, 0.5])
             rotation_matrix = bproc.camera.rotation_from_forward_vec(
                 lookat_point - location, 
-                inplane_rot=np.random.uniform(-0.3927, 0.3927)  # LIMITED: ±22.5 degrees
+                inplane_rot=np.random.uniform(-0.3927, 0.3927)  # LIMITED: Â±22.5 degrees
             )
             cam2world_matrix = bproc.math.build_transformation_mat(location, rotation_matrix)
             
@@ -824,6 +825,7 @@ def process_multi_objects(obj_paths, camera_params, base_output_dir, num_images=
         import traceback
         traceback.print_exc()
         return False, "multi_scene", 0
+
 def process_single_object(obj_path, camera_params, base_output_dir, num_images=25, is_first_object=False, 
                          global_images_dir=None, global_viz_dir=None, global_annotations=None, object_counter=None,
                          use_background=False, use_hdri=False, backgrounds_dir=None, haven_path=None,
@@ -1018,15 +1020,15 @@ def process_single_object(obj_path, camera_params, base_output_dir, num_images=2
                 center=obj.get_location(),
                 radius_min=2,
                 radius_max=10,
-                elevation_min=-90,
-                elevation_max=90
+                elevation_min=-45,
+                elevation_max=75
             )
             
             # Compute rotation
             lookat_point = obj.get_location() + np.random.uniform([-0.5, -0.5, -0.5], [0.5, 0.5, 0.5])
             rotation_matrix = bproc.camera.rotation_from_forward_vec(
                 lookat_point - location, 
-                inplane_rot=np.random.uniform(-0.7854, 0.7854)
+                inplane_rot=np.random.uniform(-0.3927, 0.3927)
             )
             cam2world_matrix = bproc.math.build_transformation_mat(location, rotation_matrix)
             
@@ -1141,6 +1143,7 @@ def process_single_object(obj_path, camera_params, base_output_dir, num_images=2
                 bg_annotations["images"].append({
                     "file_name": image_filename,
                     "keypoints": frame_keypoints,
+                    "bbox": bbox,
                     "object_id": obj_identifier,
                     "category": category,
                     "original_name": obj_name
@@ -1167,6 +1170,7 @@ def process_single_object(obj_path, camera_params, base_output_dir, num_images=2
                 hdri_annotations["images"].append({
                     "file_name": image_filename,
                     "keypoints": frame_keypoints,
+                    "bbox": bbox,
                     "object_id": obj_identifier,
                     "category": category,
                     "original_name": obj_name
@@ -1190,10 +1194,10 @@ def main():
                         default="/datashare/project/camera.json", 
                         help="Camera intrinsics in json format")
     parser.add_argument('--output_dir', 
-                        default="output_all_tools_full", 
+                        default="output_all_tools_multi_tool", 
                         help="Base output directory")
     parser.add_argument('--num_images', 
-                        type=int, default=80, 
+                        type=int, default=2, 
                         help="Number of images per object")
     parser.add_argument('--categories',
                         nargs='+',
@@ -1212,6 +1216,12 @@ def main():
                         default="/datashare/project/haven/",
                         help="Path to the haven HDRI images")
     
+    # NEW: Multi-tool option
+    parser.add_argument('--use_multi_tools', action='store_true',
+                        help="Enable rendering multiple tools in the same scene")
+    parser.add_argument('--multi_tool_ratio', type=float, default=0.3,
+                        help="Ratio of multi-tool scenes (0.0-1.0, default: 0.3)")
+    
     args = parser.parse_args()
     
     # Validate arguments
@@ -1225,6 +1235,11 @@ def main():
     
     if not args.use_background and not args.use_hdri:
         print("Note: Neither --use_background nor --use_hdri specified. Will render base images only.")
+    
+    # Validate multi-tool ratio
+    if args.multi_tool_ratio < 0.0 or args.multi_tool_ratio > 1.0:
+        print("Error: --multi_tool_ratio must be between 0.0 and 1.0")
+        return
     
     # Create base output directory structure
     os.makedirs(args.output_dir, exist_ok=True)
@@ -1280,12 +1295,13 @@ def main():
     print(f"\nTotal objects to process: {len(all_objects)}")
     
     # Print rendering configuration
-    # Print rendering configuration
     print(f"\nRendering Configuration:")
     print(f"  Base images: Always enabled")
     print(f"  Background pasting: {'Enabled' if args.use_background else 'Disabled'}")
     print(f"  HDRI backgrounds: {'Enabled' if args.use_hdri else 'Disabled'}")
-    print(f"  Multi-tool rendering: {'Enabled' if args.multi_tool else 'Disabled'}")
+    print(f"  Multi-tool scenes: {'Enabled' if args.use_multi_tools else 'Disabled'}")
+    if args.use_multi_tools:
+        print(f"  Multi-tool ratio: {args.multi_tool_ratio:.1%}")
     
     # Initialize BlenderProc once at the beginning
     print("Initializing BlenderProc...")
@@ -1295,19 +1311,35 @@ def main():
         # Process objects
         successful_objects = []
         failed_objects = []
+        processed_objects = set()  # Keep track of processed objects to avoid duplicates
         
-        if args.multi_tool:
-            # Multi-object processing mode
-            num_scenes = len(all_objects) // 2 + len(all_objects) % 2  # Rough estimate
-            print(f"\nMulti-tool mode: Will process approximately {num_scenes} scenes")
+        # Calculate how many multi-tool scenes to generate
+        if args.use_multi_tools and len(all_objects) >= 2:
+            total_scenes = len(all_objects)
+            num_multi_scenes = int(total_scenes * args.multi_tool_ratio)
+            num_single_scenes = total_scenes - num_multi_scenes
             
-            for scene_idx in range(num_scenes):
+            print(f"\nScene distribution:")
+            print(f"  Single-tool scenes: {num_single_scenes}")
+            print(f"  Multi-tool scenes: {num_multi_scenes}")
+            
+            scene_count = 0
+            
+            # Generate multi-tool scenes first
+            for multi_scene_idx in range(num_multi_scenes):
+                # Select available objects for multi-tool scene
+                available_objects = [obj for obj in all_objects if obj not in processed_objects]
+                if len(available_objects) < 2:
+                    print(f"Warning: Not enough objects left for multi-tool scene {multi_scene_idx + 1}")
+                    break
+                
+                scene_count += 1
                 print(f"\n{'='*60}")
-                print(f"Processing multi-tool scene {scene_idx + 1}/{num_scenes}")
+                print(f"Processing multi-tool scene {scene_count}/{num_multi_scenes + num_single_scenes}")
                 print(f"{'='*60}")
                 
                 success, scene_identifier, num_rendered = process_multi_objects(
-                    all_objects,
+                    available_objects,
                     camera_params,
                     args.output_dir,
                     args.num_images,
@@ -1329,10 +1361,53 @@ def main():
                 
                 if success:
                     successful_objects.append((scene_identifier, num_rendered))
+                    # Mark some objects as processed (estimate 1-2 objects per multi-scene)
+                    num_to_mark = min(2, len(available_objects))
+                    for obj in available_objects[:num_to_mark]:
+                        processed_objects.add(obj)
                 else:
-                    failed_objects.append(f"scene_{scene_idx}")
+                    failed_objects.append(f"multi_scene_{multi_scene_idx + 1}")
+            
+            # Generate remaining single-tool scenes
+            available_objects = [obj for obj in all_objects if obj not in processed_objects]
+            remaining_to_process = min(num_single_scenes, len(available_objects))
+            
+            for i, obj_path in enumerate(available_objects[:remaining_to_process]):
+                obj_name = os.path.splitext(os.path.basename(obj_path))[0]
+                scene_count += 1
+                print(f"\n{'='*60}")
+                print(f"Processing single-tool scene {scene_count}/{num_multi_scenes + num_single_scenes}: {obj_name}")
+                print(f"{'='*60}")
+                
+                success, obj_identifier, num_rendered = process_single_object(
+                    obj_path,
+                    camera_params,
+                    args.output_dir,
+                    args.num_images,
+                    is_first_object=False,  # BlenderProc already initialized
+                    global_images_dir=global_images_dir,
+                    global_viz_dir=global_viz_dir,
+                    global_annotations=global_annotations,
+                    object_counter=object_counter,
+                    use_background=args.use_background,
+                    use_hdri=args.use_hdri,
+                    backgrounds_dir=args.backgrounds_dir if args.use_background else None,
+                    haven_path=args.haven_path if args.use_hdri else None,
+                    bg_images_dir=bg_images_dir,
+                    bg_viz_dir=bg_viz_dir,
+                    hdri_images_dir=hdri_images_dir,
+                    hdri_viz_dir=hdri_viz_dir,
+                    bg_annotations=bg_annotations,
+                    hdri_annotations=hdri_annotations
+                )
+                
+                if success:
+                    successful_objects.append((obj_identifier, num_rendered))
+                else:
+                    failed_objects.append(obj_name)
+        
         else:
-            # Original single-object processing mode
+            # Original single-object processing
             for i, obj_path in enumerate(all_objects, 1):
                 obj_name = os.path.splitext(os.path.basename(obj_path))[0]
                 print(f"\n{'='*60}")
@@ -1340,9 +1415,9 @@ def main():
                 print(f"{'='*60}")
                 
                 success, obj_identifier, num_rendered = process_single_object(
-                    obj_path, 
-                    camera_params, 
-                    args.output_dir, 
+                    obj_path,
+                    camera_params,
+                    args.output_dir,
                     args.num_images,
                     is_first_object=(i == 1),
                     global_images_dir=global_images_dir,
@@ -1364,7 +1439,8 @@ def main():
                 if success:
                     successful_objects.append((obj_identifier, num_rendered))
                 else:
-                    failed_objects.append(obj_name)        
+                    failed_objects.append(obj_name)
+        
         # Save all annotation files
         annotations_file = os.path.join(args.output_dir, "annotations.json")
         with open(annotations_file, 'w') as f:
@@ -1401,6 +1477,13 @@ def main():
         if args.use_hdri:
             print(f"HDRI images generated: {total_hdri_images}")
         
+        # Count scene types if multi-tools was used
+        if args.use_multi_tools:
+            single_scenes = sum(1 for img in global_annotations['images'] if 'scene_type' not in img or img.get('scene_type') != 'multi_object')
+            multi_scenes = sum(1 for img in global_annotations['images'] if img.get('scene_type') == 'multi_object')
+            print(f"Single-tool scenes: {single_scenes}")
+            print(f"Multi-tool scenes: {multi_scenes}")
+        
         print(f"\nOutput directories:")
         print(f"  Base images: {global_images_dir}")
         print(f"  Base visualizations: {global_viz_dir}")
@@ -1427,6 +1510,8 @@ def main():
             "configuration": {
                 "use_background": args.use_background,
                 "use_hdri": args.use_hdri,
+                "use_multi_tools": args.use_multi_tools,
+                "multi_tool_ratio": args.multi_tool_ratio if args.use_multi_tools else 0.0,
                 "backgrounds_dir": args.backgrounds_dir if args.use_background else None,
                 "haven_path": args.haven_path if args.use_hdri else None,
                 "num_images_per_object": args.num_images,
@@ -1453,6 +1538,13 @@ def main():
             ],
             "failed_objects": failed_objects
         }
+        
+        # Add scene type breakdown if multi-tools was used
+        if args.use_multi_tools:
+            single_scenes = sum(1 for img in global_annotations['images'] if 'scene_type' not in img or img.get('scene_type') != 'multi_object')
+            multi_scenes = sum(1 for img in global_annotations['images'] if img.get('scene_type') == 'multi_object')
+            summary_data["results"]["single_tool_scenes"] = single_scenes
+            summary_data["results"]["multi_tool_scenes"] = multi_scenes
         
         # Add background and HDRI output info if used
         if args.use_background:
