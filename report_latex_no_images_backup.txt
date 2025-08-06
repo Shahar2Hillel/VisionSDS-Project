@@ -1,0 +1,183 @@
+\documentclass{article}
+
+%%%%%%% PACKAGES %%%%%%%%
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2cm]{geometry}
+\usepackage{setspace}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{notoccite}
+\usepackage{lscape}
+\usepackage{caption}
+\usepackage[colorlinks=true, linkcolor=black, urlcolor=black]{hyperref}
+\usepackage[
+backend=biber,  
+style=ieee,
+sorting=none
+]{biblatex}
+\addbibresource{refs.bib}
+
+\onehalfspace
+
+\title{\vspace{3.5cm}\Huge{\textbf{CV Project Temp title}} \\\vspace{0.5cm}
+\LARGE{CV} \\
+\\\vspace{0.5cm}
+\LARGE{CV Final Project} \\
+\\\vspace{0.5cm}
+\large{Template Subtitle or Description} \\
+
+\\\vspace{3.5cm}
+\LARGE{}
+}
+{\author{Template Author 1 \\
+Template Author 2 \\
+Template Author 3 \\\\}}
+
+\date{}
+
+\begin{document}
+\pagenumbering{roman}
+\maketitle
+\thispagestyle{empty}
+
+\newpage
+\setcounter{page}{1}
+\pagenumbering{arabic}
+
+%%% SECTION 1 %%%
+\section{Phase 1: Synthetic Data Generation}
+
+\subsection{Data Generation Pipeline}
+
+The synthetic pipeline generates labeled surgical tool images through scene setup, randomized lighting, tool placement, keypoint extraction, 2D projection, and annotation.
+
+\subsubsection*{Scene Setup and Object Loading}
+Scenes begin in a clean Blender environment, where surgical tools are imported as 3D mesh objects. Lighting is randomized using point sources or HDRI maps, and material properties are varied to simulate realistic reflections and appearances.
+
+\subsubsection*{3D Keypoint Generation (Ground Truth)}
+Keypoints are computed per tool using tailored logic based on 3D mesh geometry. The method varies by tool category.
+
+\begin{table}[H]
+\centering
+\caption*{Keypoint Computation for Needle Holder}
+\begin{tabular}{|l|l|p{8cm}|}
+\hline
+\textbf{Tool} & \textbf{Keypoint(s)} & \textbf{Computation Method (Steps)} \\
+\hline
+Needle Holder & top\_left, top\_right & 1. Select top 15\% of vertices by Z-axis. \newline 2. Pick leftmost (min X) and rightmost (max X) among them. \\
+\hline
+Needle Holder & bottom\_left, bottom\_right & 1. Select bottom 15\% of vertices by Z-axis. \newline 2. Pick leftmost and rightmost by X-axis. \\
+\hline
+Needle Holder & middle\_left, middle\_right & 1. Filter mid-range Z values (30–70\%). \newline 2. Choose vertex closest to X-percentile centroid on each side. \\
+\hline
+Needle Holder & joint\_center & 1. Compute midpoints of tips and shaft. \newline 2. Interpolate 30\% between them and select nearest vertex. \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption*{Keypoint Computation for Tweezers}
+\begin{tabular}{|l|l|p{8cm}|}
+\hline
+\textbf{Tool} & \textbf{Keypoint(s)} & \textbf{Computation Method (Steps)} \\
+\hline
+Tweezers & bottom\_tip & 1. Find the vertex with lowest Z value. \newline 2. Assign as bottom\_tip. \\
+\hline
+Tweezers & top\_left, top\_right & 1. Split vertices into left/right arms using median X. \newline 2. In each arm, select top 20\% Z vertices, pick extreme X. \\
+\hline
+Tweezers & mid\_left, mid\_right & 1. Find median Z in each arm. \newline 2. Select vertex closest to it. \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption*{Keypoint Computation for Fallback Tools}
+\begin{tabular}{|l|l|p{8cm}|}
+\hline
+\textbf{Tool} & \textbf{Keypoint(s)} & \textbf{Computation Method (Steps)} \\
+\hline
+Fallback (Generic) & top\_left, top\_right & 1. Filter top 20\% Z vertices. \newline 2. Pick min X (left) and max X (right). \\
+\hline
+Fallback (Generic) & bottom\_left, bottom\_right & 1. Filter bottom 20\% Z vertices. \newline 2. Pick min X (left) and max X (right). \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsubsection*{2D Projection}
+3D keypoints are projected to 2D using BlenderProc’s intrinsic matrix and camera poses sampled on a spherical shell around the tools.
+
+\subsubsection*{View-Dependent Labeling}
+To maintain consistent left/right annotation across views, projected X-values are compared, and labels swapped if needed.
+
+\subsubsection*{Rendering and Annotation}
+Each frame outputs RGB images, segmentation masks, and annotations in COCO format (bounding boxes, keypoints, metadata).
+
+
+\subsection{Implemented Variations}
+
+\subsubsection*{Spatial and Camera Variations}
+Tools are randomly placed and rotated using spherical sampling. The camera is also moved within a range of angles and distances to mimic real surgical viewpoints.
+
+\subsubsection*{Lighting and Background Diversity}
+Point lights vary in position, intensity, and color. Backgrounds switch between HDRI maps and photographic images to simulate various settings.
+
+\subsubsection*{Creative Variation 1: Multi-Tool Scenes}
+Frames may contain multiple tools, creating inter-object occlusion and realistic complexity. This mimics crowded surgical environments.
+
+\subsubsection*{Creative Variation 2: Focused Surgical Lighting}
+Downward-facing spotlights are used in some scenes to replicate operating room lighting conditions with high contrast and tool emphasis.
+
+\subsection{Domain Gap Analysis}
+
+\subsubsection*{Tool Usage Context}  
+\textit{Synthetic:} Tools appear isolated, without interaction.  
+\newline
+\textit{Real:} Tools are held by hands and interact with surgical fields.  
+\newline
+\textbf{Domain Gap:} Lack of procedural context limits realism.
+
+\subsubsection*{Background Semantics}  
+\textit{Synthetic:} Backgrounds are unrelated to medicine.
+\newline
+\textit{Real:} Includes drapes, gloves, and patient anatomy. 
+\newline
+\textbf{Domain Gap:} Missing clinical context affects semantic alignment.
+
+\subsubsection*{Texture and Surface Realism}  
+\textit{Synthetic:} Surfaces are clean and perfect.  
+\newline
+\textit{Real:} Includes reflections, stains, and occlusions.  
+\newline
+\textbf{Domain Gap:} Idealized textures reduce transferability.
+
+\subsubsection*{Scene Complexity and Occlusion}  
+\textit{Synthetic:} Minimal and controlled occlusion.  
+\newline
+\textit{Real:} Frequent overlaps with tools and hands.  
+\newline
+\textbf{Domain Gap:} Simplified scenes reduce training robustness.
+
+\subsection{Discussion of Challenges and Key Findings}
+
+\subsubsection*{Challenges}
+- \textbf{Annotation Strategy:} \newline Manual labeling was unscalable; automation required mesh understanding and consistent landmark definitions.  \newline
+- \textbf{Ground Truth Modeling:} \newline Bounding boxes lacked precision; keypoints added detail but required careful design.  \newline
+- \textbf{Domain Alignment:} \newline Synthetic scenes missed surgical cues like hands, lighting, and tissue.
+
+\subsubsection*{Key Findings}
+- \textbf{Reliable Auto-Annotation:} \newline Ground truth labels were generated using mesh metadata—accurate and scalable.  \newline
+- \textbf{Multi-Tool and Multi-Pose Scenes:} \newline Improved realism and contextual diversity.  \newline
+- \textbf{Spotlight Lighting:} \newline Enhanced tool visibility and mimicked surgical illumination.  \newline
+- \textbf{Pose and Camera Variation:} \newline Supported diverse perspectives and improved generalization.
+
+%%% SECTION 2 %%%
+\section{Section 2}
+
+%%% SECTION 3 %%%
+\section{Section 3}
+
+%%% END %%%
+\setstretch{1} % Bibliography spacing
+\end{document}
