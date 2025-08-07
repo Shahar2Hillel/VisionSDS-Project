@@ -6,7 +6,7 @@ import shutil
 from PIL import Image
 
 # === CONFIG ===
-dataset_root = '../OUTPUT_multi_tool_NEW_FULL_DATASET'
+dataset_root = '../output_combine'
 json_path = os.path.join(dataset_root, 'annotations.json')
 yaml_output_path = os.path.join(dataset_root, "pose.yaml")
 images_src_dir = os.path.join(dataset_root, 'images_with_background')  # source folder of all images
@@ -137,7 +137,7 @@ pose_yaml = {
     "nc": len(categories),
     "names": categories,
     "kpt_shape": [num_kpts, 3],
-    "keypoint_names": first_kp_names
+    "keypoint_names": first_kp_names,
     "flip_idx": [1, 0, 3, 2, 4]
 }
 

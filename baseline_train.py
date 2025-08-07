@@ -6,7 +6,7 @@ import albumentations as A
 from ultralytics import YOLO
 
 # From the other files, we need the dataset root and YAML path
-dataset_root = '../OUTPUT_multi_tool_NEW_FULL_DATASET'
+dataset_root = '../output_combine'
 yaml_output_path = os.path.join(dataset_root, "pose.yaml")
 
 DATA_PATH = yaml_output_path
@@ -91,11 +91,11 @@ if not IS_OPTUNA:
                'weight_decay': 0.00037138566239414383,
                'batch': 8,
                'optimizer': 'AdamW',
-               'imgsz': 416}
+               'imgsz': 320}
     custom_transforms = get_custom_transforms()
     results = model.train(
         data=DATA_PATH,
-        epochs=150,
+        epochs=500,
         pretrained=True,
         degrees=30,
         flipud=0.5,
