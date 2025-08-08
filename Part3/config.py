@@ -21,7 +21,7 @@ class Config:
 
     MODEL_PATH = Path("VisionSDS-Project/runs_single_stage/pose/train8/weights/best.pt")
     
-    HIGH_CONF_THRESH = 0.5
+    HIGH_CONF_THRESH = 0.7
     IMGSZ = 320
 
     MODEL_OUTPUT_PATH = Path("VisionSDS-Project/runs_single_stage/pose/refined")

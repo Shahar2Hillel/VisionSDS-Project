@@ -24,8 +24,8 @@ class Config:
 
 
     # Model configs:
-
-    MODEL_PATH = Path("VisionSDS-Project/runs_single_stage/pose/train8/weights/best.pt")
+    MODEL_PATH = Path("VisionSDS-Project/runs_single_stage/pose/refined/refined/weights/best.pt")
+    # MODEL_PATH = Path("VisionSDS-Project/runs_single_stage/pose/train8/weights/best.pt")
     CROP_MODEL_PATH = Path("VisionSDS-Project/runs_single_stage/pose/train8/weights/best.pt")
     
     CONF_THRESH = 0.3
@@ -48,5 +48,5 @@ class Config:
 
     # Video Processing (video.py)
     VIDEO_INPUT = Path("/datashare/HW1/ood_video_data/surg_1.mp4")
-    VIDEO_OUTPUT = Path("output_video.mp4")
+    VIDEO_OUTPUT = Path("output_video_model_refined.mp4")
     TWO_STAGE = False        
