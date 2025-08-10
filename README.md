@@ -1,7 +1,6 @@
+# Computer Vision - Surgical Applications (0970222) Final Project
 ## Synthetic Data Generator
-
 Short guide to set up and run `synthetic_data_generator.py` to make labeled images of surgical tools.
-
 ### Install
 1) Create `requirements.txt` with:
    ```txt
