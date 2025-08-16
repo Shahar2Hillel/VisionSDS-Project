@@ -1536,11 +1536,11 @@ def main():
     # New arguments for single background and hands overlay
   
 
-    default_root = "/home/student/Desktop/VisionSDS-Project"
+    
 
     parser.add_argument(
         '--single_background',
-        default=os.path.join(default_root, "surg_background.png"),
+        
         help="Path to single background file (instead of backgrounds_dir)"
     )
 
