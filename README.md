@@ -1,45 +1,53 @@
 # Computer Vision - Surgical Applications (0970222) Final Project
 ## Synthetic Data Generator
-Short guide to set up and run `synthetic_data_generator.py` to make labeled images of surgical tools.
-### Install
-1) Create `requirements.txt` with:
+Short guide to run `synthetic_data_generator.py` to make labeled images of surgical tools.
+
+### Install (short)
+1) `requirements.txt`:
    ```txt
    blenderproc>=2.6
    numpy>=1.23
    matplotlib>=3.6
    Pillow>=9.4
    ```
-2) (Optional) Virtual env:
+2) (Optional) env & first run:
    ```bash
    conda create -n synth python=3.10
    conda activate synth
    pip install blenderproc
    blenderproc quickstart
-   ```
-3) Install:
-   ```bash
    pip install -r requirements.txt
-   blenderproc --version   # first run may download Blender bundle
+   blenderproc --version
    ```
 
 ### Data needed
-- 3D models (.obj) in folders: `needle_holder/`, `tweezers/`
-- Background images folder
+- 3D models (.obj) in: `needle_holder/`, `tweezers/`
 - HDRIs: `haven/hdris/.../*.hdr`
-- `camera.json` with fx, fy, cx, cy, width, height
+- `camera.json` (fx, fy, cx, cy, width, height)
+- **Backgrounds (choose ONE mode below)**
+
+### Background modes (TWO VERSIONS)
+- **Single background** — use an image named **`surg_background.png`**.  
+  Configure its path with `--single_background` (defaults to `/home/student/Desktop/VisionSDS-Project/surg_background.png`).  
+- **Multi background (random)** — use a folder via `--backgrounds_dir` (current approach).
 
 ### Generate data
+**1) Single background (`surg_background.png`)**
 ```bash
-blenderproc run synthetic_data_generator.py   --tools_dir /path/to/surgical_tools_models   --camera_params /path/to/camera.json   --output_dir DATASET_01   --num_images 10   --categories needle_holder tweezers   --backgrounds_dir /path/to/backgrounds   --haven_path /path/to/haven/
+blenderproc run synthetic_data_generator.py   --tools_dir /path/to/surgical_tools_models   --camera_params /path/to/camera.json   --output_dir DATASET_SINGLE_BG   --num_images 10   --categories needle_holder tweezers   --single_background /path/to/surg_background.png   --haven_path /path/to/haven/
+```
+
+**2) Multi background (random)**
+```bash
+blenderproc run synthetic_data_generator.py   --tools_dir /path/to/surgical_tools_models   --camera_params /path/to/camera.json   --output_dir DATASET_MULTI_BG   --num_images 10   --categories needle_holder tweezers   --backgrounds_dir /path/to/backgrounds   --haven_path /path/to/haven/
 ```
 
 ### Outputs
-- `images_with_background/`
-- `visualizations_with_background/`
+- `images_with_background/`, `visualizations_with_background/`
 - `annotations.json`, `processing_summary.json`
 
 ### Reproduce
-1) Install (see above)
-2) Place assets (see Data needed)
-3) Run the command (see Generate data)
-4) Check outputs (see Outputs)
+1) Install  
+2) Place assets  
+3) Run one of the commands  
+4) Check outputs
