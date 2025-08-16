@@ -62,80 +62,52 @@ Keypoints are computed per tool using tailored logic based on 3D mesh geometry; 
 
 \begin{table}[H]
 \centering
-\caption*{Keypoint Computation for Needle Holder}
-\begin{tabular}{|l|l|p{8cm}|}
+\setlength{\tabcolsep}{4pt}        % tighter columns
+\renewcommand{\arraystretch}{1.05} % tighter rows
+\small
+\caption*{Keypoint Computation (All Tools)}
+\begin{tabular}{|l|l|p{6.2cm}|}
 \hline
-\textbf{Tool} & \textbf{Keypoint(s)} & \textbf{Computation Method (Steps)} \\
+\textbf{Tool} & \textbf{Keypoint(s)} & \textbf{Computation (summary)} \\
 \hline
-Needle Holder & top\_left, top\_right & 1. Select top 15\% of vertices by Z-axis. \newline 2. Pick leftmost (min X) and rightmost (max X) among them. \\
+Needle holder & top\_left, top\_right & Top 15\% by Z; choose min X (left) and max X (right). \\
 \hline
-Needle Holder & bottom\_left, bottom\_right & 1. Select bottom 15\% of vertices by Z-axis. \newline 2. Pick leftmost and rightmost by X-axis. \\
+Needle holder & bottom\_left, bottom\_right & Bottom 15\% by Z; choose min/max X. \\
 \hline
-Needle Holder & middle\_left, middle\_right & 1. Filter mid-range Z values (30–70\%). \newline 2. Choose vertex near the centroid of left/right X-percentile subsets. \\
+Needle holder & middle\_left, middle\_right & Keep Z in 30--70\%; pick near centroid of left/right X-percentiles. \\
 \hline
-Needle Holder & joint\_center & 1. Average the two top tips and the two middle points. \newline 2. move 30\% from the tip-center toward the middle-center, then choose the closest vertex.  \\
+Needle holder & joint\_center & Avg of (top tips, mids); move 30\% toward middle-center; nearest vertex. \\
 \hline
-\end{tabular}
-\end{table}
-
-\begin{table}[H]
-\centering
-\caption*{Keypoint Computation for Tweezers}
-\begin{tabular}{|l|l|p{8cm}|}
+Tweezers & bottom\_tip & Vertex with lowest Z. \\
 \hline
-\textbf{Tool} & \textbf{Keypoint(s)} & \textbf{Computation Method (Steps)} \\
+Tweezers & top\_left, top\_right & Split arms by median X; in each arm take top 20\% by Z, pick extreme X. \\
 \hline
-Tweezers & bottom\_tip & 1. Find the vertex with lowest Z value. \newline 2. Assign as bottom\_tip. \\
+Tweezers & mid\_left, mid\_right & Per arm, choose vertex closest to median Z. \\
 \hline
-Tweezers & top\_left, top\_right & 1. Split vertices into left/right arms using median X. \newline 2. In each arm, select top 20\% Z vertices, pick extreme X. \\
+Fallback (generic) & top\_left, top\_right & Top 20\% by Z; pick min/max X. \\
 \hline
-Tweezers & mid\_left, mid\_right & 1. Find median Z in each arm. \newline 2. Select vertex closest to it. \\
+Fallback (generic) & bottom\_left, bottom\_right & Bottom 20\% by Z; pick min/max X. \\
 \hline
 \end{tabular}
 \end{table}
 
-\begin{table}[H]
-\centering
-\caption*{Keypoint Computation for Fallback Tools}
-\begin{tabular}{|l|l|p{8cm}|}
-\hline
-\textbf{Tool} & \textbf{Keypoint(s)} & \textbf{Computation Method (Steps)} \\
-\hline
-Fallback (Generic) & top\_left, top\_right & 1. Filter top 20\% Z vertices. \newline 2. Pick min X (left) and max X (right). \\
-\hline
-Fallback (Generic) & bottom\_left, bottom\_right & 1. Filter bottom 20\% Z vertices. \newline 2. Pick min X (left) and max X (right). \\
-\hline
-\end{tabular}
-\end{table}
 
 
 
 
 \subsubsection*{2D Projection}
 We project the 3D keypoints to 2D using the camera intrinsics and camera poses sampled around the tools. We fix left/right labels right after projection and again at the end.\\
-\textbf{Corrections:} Clamp any keypoint outside the object's bounding box to the edge; if a point is inside the box but off the mask, move it to a plausible location (needle-holder points along side/center lines; tweezers arm points along their arms), then snap off-mask points to the nearest foreground pixel inside the box (skip this snap for the tweezers tip). For the tweezers \texttt{bottom\_tip}, only ensure it lies inside the box (clamp if needed); do not snap it onto an arm.
+\textbf{Corrections:} Drop any keypoint outside the image; then clamp any keypoint outside the object's bounding box to the edge. If a point is inside the box but off the mask, move it to a plausible location (needle-holder points along side/center lines; tweezers arm points along their arms), then snap off-mask points to the nearest foreground pixel inside the box (skip this snap for the tweezers tip). For the tweezers \texttt{bottom\_tip}, only ensure it lies inside the box (clamp if needed); do not snap it onto an arm.
+
 
 \subsubsection*{View-Dependent Labeling}
 To maintain consistent left/right annotation across views, projected X-values are compared, and labels swapped if needed.
+\subsubsection*{Partial Visibility Strategy \& Post-Projection Rules}
+We induce partial visibility by sampling closer, lower camera shells and/or offsetting the look-at so tools are cropped—mimicking OR framing. After projection, we drop out-of-frame keypoints and derive a bbox from the instance mask; then we clamp bbox-out points to the edge, gently nudge any off-mask points onto the tool (skip snapping for tweezers \texttt{bottom\_tip}), and enforce left/right by X-order.
+
 \subsubsection*{Rendering and Annotation}
 We compute each object's bounding box from instance segmentation, composite the RGBA render over a photo background with a soft surgical spotlight, save the background-composited RGB image and a visualization image, and write one JSON record per image with the saved image name and, for each object, its id/category, 2D keypoints, and bounding box.
 
-\subsubsection*{Final Dataset Statistics}
-
-\begin{table}[H]
-\centering
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{|l|c|c|c|}
-\hline
-\textbf{Category} & \textbf{Items} & \textbf{Images / item} & \textbf{Total images} \\
-\hline
-Single objects & 25 & 10 & 250 \\
-Tool pairs     & 150 & 10 & 1500 \\
-\hline
-\textbf{Total} & \textbf{175} &  & \textbf{1750} \\
-\hline
-\end{tabular}
-\end{table}
 
 
 
@@ -150,11 +122,36 @@ Each render randomizes a point light’s position (direction) and intensity. We 
 \subsubsection*{Background variation}
 Rendered frames are composited over randomly chosen photographic backgrounds.
 
-\subsubsection*{Creative variation 1: Surgical-room spotlight}
-We add a soft, radial “OR” spotlight centered on the tools to emulate operating-room lighting and emphasize instrument visibility.
+\subsubsection*{Synthetic Images — Creative Approach 1: Photo Backgrounds, Spotlight \& Pairing}
+It consists of \textbf{two creative variations}:
+\begin{itemize}
+    \item \textbf{Surgical-room spotlight:} Add a soft radial spotlight centered on the tools to mimic OR lighting and improve visibility.
+    \item \textbf{Multi-tool images:} Render needle holder–tweezers pairs in joint top-down scenes to reflect common two-instrument frames and create realistic occlusions.
+\end{itemize}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.33\linewidth]{dataset1_1.png}\hfill
+\includegraphics[width=0.33\linewidth]{dataset1_2.png}\hfill
+\includegraphics[width=0.33\linewidth]{dataset1_3.png}\hfill
+\includegraphics[width=0.40\linewidth]{dataset1_4.png}\hfill
+\includegraphics[width=0.40\linewidth]{dataset1_5.png}
+\caption{Approach 1 examples: spotlight and multi-tool pairing.}
+\label{fig:approach1_examples_5}
+\end{figure}
 
-\subsubsection*{Creative variation 2: Multi-tool images}
-For every needle-holder and tweezers pair, we generate a joint top-down scene to reflect common two-instrument frames and introduce realistic occlusions.
+
+\subsubsection*{Synthetic Images — Creative Approach 2:  Operating-Room (OR) Backgrounds}
+In this \textbf{creative approach} we take frames from OR videos, remove people/tools to get clean backgrounds, and composite our rendered tools on top. Then we make small changes (brightness, color, slight blur/noise, small rotations/perspective). This adds real OR context while keeping labels accurate.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.18\linewidth]{figs/approach2_img1.jpg}\hfill
+\includegraphics[width=0.18\linewidth]{figs/approach2_img2.jpg}\hfill
+\includegraphics[width=0.18\linewidth]{figs/approach2_img3.jpg}\hfill
+\includegraphics[width=0.18\linewidth]{figs/approach2_img4.jpg}\hfill
+\includegraphics[width=0.18\linewidth]{figs/approach2_img5.jpg}
+\caption{Approach 2 examples: tools on cleaned OR video backgrounds with light variations.}
+\label{fig:approach2_examples_5}
+\end{figure}
 
 \subsection{Domain Gap Analysis}
 
