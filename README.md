@@ -55,15 +55,15 @@ blenderproc run synthetic_data_generator.py   --tools_dir /path/to/surgical_tool
 ### Visualizations
 
 #### Dataset 1 Samples
-![dataset1_1](dataset1_1.png)
-![dataset1_2](dataset1_2.png)
-![dataset1_3](dataset1_3.png)
-![dataset1_4](dataset1_4.png)
-![dataset1_5](dataset1_5.png)
+![dataset1_1](10%20Visualizations%20To%20Submit/dataset1_1.png)
+![dataset1_2](10%20Visualizations%20To%20Submit/dataset1_2.png)
+![dataset1_3](10%20Visualizations%20To%20Submit/dataset1_3.png)
+![dataset1_4](10%20Visualizations%20To%20Submit/dataset1_4.png)
+![dataset1_5](10%20Visualizations%20To%20Submit/dataset1_5.png)
 
 #### Approach 2 Results
-![approach2_img1](approach2_img1.png)
-![approach2_img2](approach2_img2.png)
-![approach2_img3](approach2_img3.png)
-![approach2_img4](approach2_img4.png)
-![approach2_img5](approach2_img5.png)
+![approach2_img1](10%20Visualizations%20To%20Submit/approach2_img1.png)
+![approach2_img2](10%20Visualizations%20To%20Submit/approach2_img2.png)
+![approach2_img3](10%20Visualizations%20To%20Submit/approach2_img3.png)
+![approach2_img4](10%20Visualizations%20To%20Submit/approach2_img4.png)
+![approach2_img5](10%20Visualizations%20To%20Submit/approach2_img5.png)
