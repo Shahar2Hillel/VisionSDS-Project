@@ -31,7 +31,7 @@ sorting=none
 \LARGE{}
 }
 {\author{Noam Carmon \\
-Raz Biton \\
+Raz Biton 315507780\\
 Shahar Hillel \\\\}}
 
 \date{}
@@ -144,11 +144,11 @@ It consists of \textbf{two creative variations}:
 In this \textbf{creative approach} we take frames from OR videos, remove people/tools to get clean backgrounds, and composite our rendered tools on top. Then we make small changes (brightness, color, slight blur/noise, small rotations/perspective). This adds real OR context while keeping labels accurate.
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.18\linewidth]{figs/approach2_img1.jpg}\hfill
-\includegraphics[width=0.18\linewidth]{figs/approach2_img2.jpg}\hfill
-\includegraphics[width=0.18\linewidth]{figs/approach2_img3.jpg}\hfill
-\includegraphics[width=0.18\linewidth]{figs/approach2_img4.jpg}\hfill
-\includegraphics[width=0.18\linewidth]{figs/approach2_img5.jpg}
+\includegraphics[width=0.33\linewidth]{approach2_img1.png}\hfill
+\includegraphics[width=0.33\linewidth]{approach2_img2.png}\hfill
+\includegraphics[width=0.33\linewidth]{approach2_img3.png}\hfill
+\includegraphics[width=0.40\linewidth]{approach2_img4.png}\hfill
+\includegraphics[width=0.40\linewidth]{approach2_img5.png}
 \caption{Approach 2 examples: tools on cleaned OR video backgrounds with light variations.}
 \label{fig:approach2_examples_5}
 \end{figure}
