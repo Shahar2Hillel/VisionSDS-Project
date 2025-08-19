@@ -1,5 +1,5 @@
 # Computer Vision - Surgical Applications (0970222) Final Project
-## Synthetic Data Generator
+## Phase 1 -Synthetic Data Generator
 Short guide to run `synthetic_data_generator.py` to make labeled images of surgical tools.
 
 ### Install (short)
@@ -72,3 +72,67 @@ blenderproc run synthetic_data_generator.py   --tools_dir /path/to/surgical_tool
   <img src="10%20Visualizations%20To%20Submit/approach2_img5.png" width="200"/>
 </p>
 
+## Phase 2 - Model Training
+### Preparing YOLO Dataset
+To run the yolo dataset preperation -> moving into yolo format labeling & pose.yaml creation run
+```bash
+python prepare_dataset.py
+```
+For configuartions and additions of datasets from phase 1, add them in "BASE_DATA_FOLDERS" in
+ ```bash
+configs/prepare_dataset_config.py
+```
+
+### Training YOLO
+Simply run:
+```bash
+python train_yolo.py
+```
+
+## Phase 3 - Model Refinement
+### Refining model
+To create psuedo labeled dataset and refine the model run:
+```bash
+python refine_model.py
+```
+To change configuartions go to:
+ ```bash
+configs/refine_config.py
+```
+
+# Inferences
+## Running on Video:
+Configure:
+- MODEL_PATH (Chosen model - refined or synthetic) 
+- VIDEO_OUTPUT
+- VIDEO_INPUT
+ ```bash
+configs/video_config.py
+```
+Then run
+ ```bash
+python video.py
+```
+
+## Running on Image
+Configure:
+- MODEL_PATH (Chosen model - refined or synthetic) 
+- IMAGE_PATH
+- OUTPUT_PATH
+ ```bash
+configs/predict_config.py
+```
+Then run
+ ```bash
+python predict.py
+```
+
+# Project Outputs
+Link to required outputs:
+
+- models:
+   - synthetic.pt
+   - refined.pt
+- videos:
+   -  results_synthetic_only.mp4
+   -  results_refined.mp4
