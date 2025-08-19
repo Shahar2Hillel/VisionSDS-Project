@@ -26,7 +26,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from ultralytics import YOLO
 
-from config import Config
+from configs.kpt_analysis_config import Config
 
 
 def load_gt(label_path: Path) -> np.ndarray:
@@ -59,7 +59,9 @@ def annotate_and_log(img, gt_kpts, pred_kpts, bbox, img_name):
 
 def run_inference_and_log():
     # Ensure output directory exists
-    Config.OUTPUT_VIS.mkdir(parents=True, exist_ok=True)
+    Config.KEYPOINT_ANALYSIS_OUTPUT.mkdir(parents=True, exist_ok=True)
+    Config.KEYPOINT_ANALYSIS_OUTPUT_IMAGES.mkdir(parents=True, exist_ok=True)
+    
 
     # Load model
     model = YOLO(Config.MODEL_PATH)
@@ -110,7 +112,7 @@ def run_inference_and_log():
             csv_rows += annotate_and_log(img, gt_kpts, pred_kpts, (x1, y1, x2, y2), img_path.name)
 
         # save annotated image
-        cv2.imwrite(str(Config.OUTPUT_VIS / img_path.name), img)
+        cv2.imwrite(str(Config.KEYPOINT_ANALYSIS_OUTPUT_IMAGES / img_path.name), img)
 
     # write CSV
     with open(Config.KEYPOINT_ANALYSIS_OUTPUT_CSV_FILE, "w", newline="") as f:
