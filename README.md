@@ -129,7 +129,7 @@ python predict.py
 
 # Project Outputs
 Link to required outputs:
-
+https://drive.google.com/drive/folders/1zE6NhAeuovcwQ8BlNARvn4m6TjiPOkAm?usp=sharing
 - models:
    - synthetic.pt
    - refined.pt
