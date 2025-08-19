@@ -7,18 +7,18 @@ class Config:
     FPS_SAMPLE = 30
 
     # For synthetic video:
-    VIDEO_OUTPUT = Path("outputs/results_synthetic_only.mp4")
+    # VIDEO_OUTPUT = Path("outputs/results_synthetic_only.mp4")
 
     # For refined model video:
-    # VIDEO_OUTPUT = Path("outputs/results_refined.mp4")
+    VIDEO_OUTPUT = Path("outputs/results_refined.mp4")
 
     # Model configs:
 
     # For synthetic model:
-    MODEL_PATH = Path("/home/student/Desktop/VisionSDS-Project/yolo_dataset/runs/pose/synthetic4/weights/best.pt")
+    # MODEL_PATH = Path("/home/student/Desktop/VisionSDS-Project/yolo_dataset/runs/pose/synthetic4/weights/best.pt")
 
     # For refined model:
-    # MODEL_PATH = Path("/home/student/Desktop/VisionSDS-Project/yolo_dataset/runs/pose/refined3/weights/best.pt")
+    MODEL_PATH = Path("/home/student/Desktop/VisionSDS-Project/yolo_dataset/runs/pose/refined3/weights/best.pt")
 
 
     CONF_THRESH = 0.3
