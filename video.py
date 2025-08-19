@@ -157,8 +157,6 @@ def main():
     # frame loop
     idx = 0
     while True:
-        if idx == 300:
-            break
         ret, frame = cap.read()
         if not ret:
             break
